@@ -3,6 +3,7 @@ import "dotenv/config";
 import cors from "cors";
 import http from "http";
 import { connectDB } from "./lib/db.js";
+import userRouter from "./routes/userRoutes.js";
 
 // Create Expree app with http serevr
 const app = express();
@@ -12,7 +13,9 @@ const server = http.createServer(app);
 app.use(express.json({ limit: "4mb" }));
 app.use(cors());
 
+// Routes setup
 app.use("/api/status", (req, res) => res.send("Server is live"));
+app.use("/api/auth", userRouter);
 
 // Connect DB
 await connectDB();
