@@ -1,6 +1,6 @@
-import User from "../model/User";
+import User from "../model/User.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../lib/utils";
+import { generateToken } from "../lib/utils.js";
 
 // Sign UP API for new user (Register)
 export const signup = async (req, res) => {
@@ -55,4 +55,9 @@ export const login = async (req, res) => {
     console.log(error.message);
     res.json({ success: false, message: error.message });
   }
+};
+
+// Controller to check if the user is authenticated
+export const checkAuth = (req, res) => {
+  res.json({ success: true, user: req.user });
 };
