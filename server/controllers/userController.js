@@ -4,38 +4,89 @@ import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
 
 // Sign UP API for new user (Register)
-export const signup = async (req, res) => {
-  const { fullName, email, password, bio } = req.body;
+// export const signup = async (req, res) => {
+//   const { fullName, email, password, bio } = req.body;
 
+//   try {
+//     if (!fullName || !email || !password || !bio) {
+//       return res.json({ success: false, message: "Missing Details" });
+//     }
+//     const user = await User.findOne({ email });
+//     if (user) {
+//       return res.json({ success: false, message: "User Alrady Exists" });
+//     }
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.genSalt(password, salt);
+
+//     const newUser = await User.create({
+//       fullName,
+//       email,
+//       password: hashedPassword,
+//       bio,
+//     });
+
+//     const token = generateToken(newUser._id);
+
+//     res.json({
+//       success: true,
+//       userData: newUser,
+//       token,
+//       message: "Account Created Successfully",
+//     });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.json({ success: false, message: error.message });
+//   }
+// };
+
+export const signup = async (req, res) => {
   try {
+    let { fullName, email, password, bio } = req.body;
+
     if (!fullName || !email || !password || !bio) {
-      return res.json({ success: false, message: "Missing Details" });
+      return res.status(400).json({ success: false, message: "Missing details" });
     }
-    const user = User.findOne({ email });
-    if (user) {
-      return res.json({ success: false, message: "User Alrady Exists" });
+
+    // normalize
+    email = String(email).trim().toLowerCase();
+
+    // ✅ await the query
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ success: false, message: "User already exists" });
     }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.genSalt(password, salt);
+
+    // ✅ hash correctly
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
-      fullName,
+      fullName: fullName.trim(),
       email,
       password: hashedPassword,
-      bio,
+      bio: String(bio).trim(),
     });
 
     const token = generateToken(newUser._id);
 
-    res.json({
+    // don’t send password back
+    return res.status(201).json({
       success: true,
-      userData: newUser,
+      message: "Account created successfully",
+      user: {
+        id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        bio: newUser.bio,
+        createdAt: newUser.createdAt,
+      },
       token,
-      message: "Account Created Successfully",
     });
   } catch (error) {
-    console.log(error.message);
-    res.json({ success: false, message: error.message });
+    if (error?.code === 11000) {
+      return res.status(409).json({ success: false, message: "Email already registered" });
+    }
+    console.error("Signup error:", error);
+    return res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
 
