@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import assets from "../assets/assets";
+import { AuthContext } from "../../context/AuthContext";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign up");
@@ -8,6 +10,9 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
+  const navigate = useNavigate();
+
+  const { login } = useContext(AuthContext);
 
   const onSubmitHandler = (event) => {
     event.preventDefault();
@@ -16,6 +21,13 @@ const LoginPage = () => {
       setIsDataSubmitted(true);
       return;
     }
+    const ok = login(currState === "Sign up" ? "signup" : "login", {
+      fullName,
+      email,
+      password,
+      bio,
+    });
+    if (ok) navigate("/");
   };
 
   return (
