@@ -58,35 +58,79 @@ export const AuthProvider = ({ children }) => {
     socket.disconnect();
   };
 
-  // update profile function to handle user profile updates
+  // // update profile function to handle user profile updates
+  // const updateProfile = async (body) => {
+  //   try {
+  //     const { data } = await axios.get("/api/auth/update-profile", body);
+  //     if (data.success) {
+  //       setAuthUser(data.user);
+  //       toast.success("Profile Updated Successfully");
+  //     } else {
+  //       toast.error("Something went wrong");
+  //     }
+  //   } catch (error) {
+  //     toast.error(error.message);
+  //   }
+  // };
+
+  // AuthContext.jsx
   const updateProfile = async (body) => {
     try {
-      const { data } = await axios.get("/api/auth/update-profile", body);
+      const { data } = await axios.put("/api/auth/update-profile", body); // <-- PUT
       if (data.success) {
         setAuthUser(data.user);
         toast.success("Profile Updated Successfully");
       } else {
-        toast.error("Something went wrong");
+        toast.error(data.message || "Something went wrong");
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.response?.data?.message || error.message);
     }
   };
 
   //   connect socket functions to handle socket connection & online users updates
+  // const connectSocket = (userData) => {
+  //   if (!userData || socket?.connected) return;
+  //   const newSocket = io(backendUrl, {
+  //     query: {
+  //       userId: userData.id,
+  //     },
+  //   });
+  //   newSocket.connect();
+  //   setSocket(newSocket);
+
+  //   newSocket.on("getOnlineUsers", (userIds) => {
+  //     setOnlineUsers(userIds);
+  //   });
+  // };
+
+  // const connectSocket = (userData) => {
+  //   if (!userData || socket?.connected) return;
+
+  //   const userId = userData.id || userData._id; // handle both
+  //   const newSocket = io(backendUrl, { query: { userId } });
+  //   newSocket.connect();
+  //   setSocket(newSocket);
+
+  //   newSocket.on("getOnlineUsers", (userIds) => setOnlineUsers(userIds));
+  // };
+
   const connectSocket = (userData) => {
     if (!userData || socket?.connected) return;
+
+    const userId = userData.id || userData._id; // handle both
+    if (!userId) return; // guard
+
     const newSocket = io(backendUrl, {
-      query: {
-        userId: userData.id,
-      },
+      autoConnect: false, // <— prevent empty first connect
+      auth: { userId }, // <— send id here
+      // transports: ['websocket'],                // optional: skip polling
     });
+
     newSocket.connect();
     setSocket(newSocket);
 
-    newSocket.on("getOnlineUsers", (userIds) => {
-      setOnlineUsers(userIds);
-    });
+    newSocket.on("getOnlineUsers", (userIds) => setOnlineUsers(userIds));
   };
 
   useEffect(() => {

@@ -20,16 +20,56 @@ export const io = new Server(server, {
 export const userSocketMap = {}; // {userId: socketId}
 
 // Socket.io connection handler
+// io.on("connection", (socket) => {
+//   const userId = socket.handshake.query.userId;
+//   console.log("User Connected", userId);
+//   if (userId) userSocketMap[userId] = socket.io;
+//   // Emit online users to all connected clients
+//   io.emit("getOnlineUsers", Object.keys(userSocketMap));
+//   socket.on("disconnect", () => {
+//     console.log("User Disonnected", userId);
+//     delete userSocketMap[userId];
+//     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+//   });
+// });
+
+// io.on("connection", (socket) => {
+//   const userId =
+//     socket.handshake?.auth?.userId ??
+//     socket.handshake?.query?.userId;
+
+//   console.log("User Connected", userId);
+
+//   if (userId) userSocketMap[userId] = socket.id; // <-- socket.id
+
+//   io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+//   socket.on("disconnect", () => {
+//     if (userId) delete userSocketMap[userId];
+//     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+//     console.log("User Disconnected", userId);
+//   });
+// });
+
 io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId;
+  const userId =
+    socket.handshake?.auth?.userId ?? socket.handshake?.query?.userId;
+
+  if (!userId) {
+    console.log("User Connected without id -> disconnecting");
+    socket.disconnect(true);
+    return;
+  }
+
   console.log("User Connected", userId);
-  if (userId) userSocketMap[userId] = socket.io;
-  // Emit online users to all connected clients
+  userSocketMap[userId] = socket.id; // <-- store socket.id
+
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
   socket.on("disconnect", () => {
-    console.log("User Disonnected", userId);
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    console.log("User Disconnected", userId);
   });
 });
 

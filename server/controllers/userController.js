@@ -2,6 +2,8 @@ import User from "../model/User.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 // Sign UP API for new user (Register)
@@ -136,7 +138,8 @@ export const updateProfile = async (req, res) => {
         { new: true }
       );
     }
-    res.json({ success: true, user: updatedUser });
+    // res.json({ success: true, user: updatedUser });
+    return res.json({ success: true, user: updatedProfile });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });
