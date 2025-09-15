@@ -26,14 +26,27 @@ export const ChatProvider = ({ children }) => {
   };
 
   //   function to get the s=messages for the selected user
+  // const getMessages = async (userId) => {
+  //   try {
+  //     const { data } = axios.get(`/api/messages/${userId}`);
+  //     if (data.success) {
+  //       setMessages(data.messages);
+  //     }
+  //   } catch (error) {
+  //     toast.error(error.messages);
+  //   }
+  // };
+
   const getMessages = async (userId) => {
     try {
-      const { data } = axios.get(`/api/messages/${userId}`);
+      const { data } = await axios.get(`/api/messages/${userId}`); // ✅ await
       if (data.success) {
         setMessages(data.messages);
+      } else {
+        toast.error(data.message || "Failed to load messages");
       }
     } catch (error) {
-      toast.error(error.messages);
+      toast.error(error?.response?.data?.message || error.message); // ✅ proper error
     }
   };
 
@@ -45,7 +58,8 @@ export const ChatProvider = ({ children }) => {
         messageData
       );
       if (data.success) {
-        sendMessage((prevMessages) => [...prevMessages, data.newMessage]);
+        // sendMessage((prevMessages) => [...prevMessages, data.newMessage]);
+        setMessages((prevMessages) => [...prevMessages, data.newMessage]);
       }
     } catch (error) {
       toast.error(error.messages);
@@ -87,11 +101,11 @@ export const ChatProvider = ({ children }) => {
     users,
     selectedUser,
     getUsers,
-    setMessages,
+    getMessages,
     sendMessage,
     setSelectedUser,
     unseenMessages,
     setUnseenMessages,
   };
-  return <ChatContext.Provider  value={value}>{children}</ChatContext.Provider>;
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 };

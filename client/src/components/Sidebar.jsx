@@ -2,16 +2,34 @@ import React, { useContext, useEffect, useState } from "react";
 import assets from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { ChatContext } from "../../context/ChatContext";
+// import { ChatContext } from "../../context/ChatContext";
+import { ChatContext } from "../../context/ChatContext.jsx";
+
 const Sidebar = () => {
+  // const {
+  //   getUsers,
+  //   users,
+  //   selectedUser,
+  //   setSelectedUser,
+  //   unseenMessages,
+  //   setUnseenMessages,
+  // } = useContext(ChatContext);
+
+  const chat = useContext(ChatContext);
+  if (!chat) {
+    // Optional: console to verify the provider really isn't seen
+    console.warn("Sidebar mounted without ChatProvider");
+    return null; // or a small loader
+  }
+
   const {
     getUsers,
     users,
     selectedUser,
     setSelectedUser,
-    unseenMessages,
+    unseenMessages = {},
     setUnseenMessages,
-  } = useContext(ChatContext);
+  } = chat;
 
   const { logout, onlineUsers } = useContext(AuthContext);
 
@@ -72,6 +90,7 @@ const Sidebar = () => {
           <div
             onClick={() => {
               setSelectedUser(user);
+              setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
             }}
             key={index}
             className={`relative flex items-center gap-2 p-2 pl-4 rounded cursor-pointer max-sm:text-sm ${
